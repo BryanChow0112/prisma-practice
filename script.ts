@@ -9,10 +9,10 @@ async function main() {
   console.log("--- Cleaning up database ---");
 
   // **Clean up data (delete in reverse dependency order)**
-  await prisma.post.deleteMany({}); // Delete all posts first
-  await prisma.userPreference.deleteMany({}); // Delete all user preferences
-  await prisma.user.deleteMany({}); // Delete all users - now should work without FK errors
-  await prisma.category.deleteMany({}); // Delete all categories (optional, but good cleanup)
+  await prisma.post.deleteMany({});
+  await prisma.userPreference.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.category.deleteMany({});
 
   console.log("--- Database cleanup complete ---");
 
@@ -32,8 +32,9 @@ async function main() {
   // 1.2. Create multiple User records (using `createMany`)
   const manyUsers = await prisma.user.createMany({
     data: [
-      { name: "Frank Ocean", email: "frank.ocean@example.com", age: 29 }, // Unique email
-      { name: "Grace Kelly", email: "grace.kelly@example.com", age: 45 } // Unique email
+      { name: "Bryan Chow", email: "bryan.chow@example.com", age: 23 }, 
+      { name: "Frank Ocean", email: "frank.ocean@example.com", age: 29 }, 
+      { name: "Grace Kelly", email: "grace.kelly@example.com", age: 45 } 
     ]
   });
   console.log("Created Many Users:", manyUsers);
@@ -42,7 +43,7 @@ async function main() {
   const adminUser = await prisma.user.create({
     data: {
       name: "Henry Ford",
-      email: "henry.ford@example.com", // Unique email
+      email: "henry.ford@example.com", 
       age: 55,
       role: Role.ADMIN, // Setting the enum Role to ADMIN
       userPreference: {
@@ -197,6 +198,25 @@ async function main() {
     });
     console.log("Created Post with Connected Author:", newPost);
   }
+
+  // **6. DELETE OPERATIONS (Single and Multiple Records)**
+  console.log("\n--- DELETE OPERATIONS ---");
+
+  // 6.1. Delete a single User by email (using `delete`)
+  const deletedUser = await prisma.user.delete({
+    where: { email: "frank.ocean@example.com" } // Target user by unique email
+  });
+  console.log("Deleted User:", deletedUser);
+
+  // 6.2. Delete multiple Users who are younger than 28 (using `deleteMany` - CAREFUL!)
+  // **Caution**: `deleteMany` is powerful and deletes multiple records. Use filters carefully!
+  const deletedManyYoungUsers = await prisma.user.deleteMany({
+    where: { age: { lt: 28 } } // Target users younger than 28
+  });
+  console.log(
+    "Deleted Many Young Users (CAREFUL with deleteMany):",
+    deletedManyYoungUsers
+  );
 
   console.log("\n--- Prisma Script Completed ---");
 }
