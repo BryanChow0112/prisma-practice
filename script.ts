@@ -134,6 +134,70 @@ async function main() {
   });
   console.log("Paginated Users (take 2, skip 1):", paginatedUsers);
 
+  // **4. UPDATE OPERATIONS (Single and Multiple Records, Increment/Decrement)**
+  console.log("\n--- UPDATE OPERATIONS ---");
+
+  // 4.1. Update a single User's age (using `update`)
+  const updatedUser = await prisma.user.update({
+    where: { email: "eva.green@example.com" }, // Target user by unique email
+    data: { age: 33 } // Update age to 33
+  });
+  console.log("Updated User Age:", updatedUser);
+
+  // 4.2. Increment a User's age by 1 (using `increment`)
+  const incrementedAgeUser = await prisma.user.update({
+    where: { email: "eva.green@example.com" },
+    data: {
+      age: {
+        increment: 1 // Increase age by 1
+      }
+    }
+  });
+  console.log("Incremented User Age:", incrementedAgeUser);
+
+  // 4.3. Decrement a User's age by 2 (using `decrement`)
+  const decrementedAgeUser = await prisma.user.update({
+    where: { email: "eva.green@example.com" },
+    data: {
+      age: {
+        decrement: 2 // Decrease age by 2
+      }
+    }
+  });
+  console.log("Decremented User Age:", decrementedAgeUser);
+
+  // 4.4. Update multiple Users' role to BASIC who are older than 50 (using `updateMany`)
+  const updatedManyUsers = await prisma.user.updateMany({
+    where: { age: { gt: 50 } }, // Target users older than 50
+    data: { role: Role.BASIC } // Set their role to BASIC
+  });
+  console.log("Updated Many Users Role:", updatedManyUsers);
+
+  // **5. CONNECT EXISTING RELATIONSHIPS (Example with Post and User)**
+  console.log("\n--- CONNECT RELATIONSHIPS ---");
+
+  // 5.1. Create a Post and connect it to an existing User (author) - using `connect`
+  const existingUserForPost = await prisma.user.findFirst({
+    where: { name: "Grace Kelly" }
+  }); // Find an existing user
+  if (!existingUserForPost) {
+    console.warn(
+      "Grace Kelly user not found, cannot connect Post. Please ensure user 'Grace Kelly' exists."
+    );
+  } else {
+    const newPost = await prisma.post.create({
+      data: {
+        title: "Connecting Relationships in Prisma",
+        averageRating: 4.8,
+        author: {
+          connect: { id: existingUserForPost.id } // Connect to existing User using their ID
+        }
+      },
+      include: { author: true } // Include author details in the result
+    });
+    console.log("Created Post with Connected Author:", newPost);
+  }
+
   console.log("\n--- Prisma Script Completed ---");
 }
 
